@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Room App</title>
+    <link rel="icon" href="favicon.ico">
+    <link type="text/css" href="css/style.css" rel="stylesheet">
+    <link type="text/css" href="css/normalize.css" rel="stylesheet">
+    <link rel="stylesheet" media="all" href="css/animate.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="js/wow.min.js"></script>
+    <script>new WOW().init();</script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-firestore.js"></script>
+</head>
+
+<body>
+    <div class="nav fadeInLeft wow" data-wow-duration="1s">
+        <div class="nav__inner">
+            <h2 class=nav__title>Комнаты</h2>
+            <ul class="nav__list">
+                <li class="nav__item">
+                    <p class="nav__text">Главное здание</p>
+                    <ul class="nav__list nav__list--nested">
+                        <li class="nav__item"><a class="nav__link" href="#">Кабинет руководителя</a></li>
+                        <li class="nav__item"><a class="nav__link">Кабинет 101</a></li>
+                        <li class="nav__item"><a class="nav__link">Кабинет 102</a></li>
+                    </ul>
+                </li>
+                <li class="nav__item">
+                    <p class="nav__text">Производственный комплекс</p>
+                    <ul class="nav__list nav__list--nested">
+                        <li class="nav__item"><a class="nav__link">Цех обработки</a></li>
+                        <li class="nav__item"><a class="nav__link">Производственный цех</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <div class="nav__indicator indicator">
+                <h3 class="indicator__title">Индикатор</h3>
+                <div class="indicator__icon"></div>
+            </div>
+        </div>
+    </div>
+    <div class="wrapper zoomIn wow">
+        <div class="building building--main">
+            <h2 class="building__title">Главное здание</h2>
+            <div class="building__inner building__inner--main">
+                <div class="building__left">
+                    <a href="" class="building__link building__link--101" id="main-101">
+                        <div class="building__room room room--main-101">
+                            <h2 class="room__title">Кабинет 101</h2>
+                        </div>
+                    </a>
+                    <a href="" class="building__link" id="main-102">
+                        <div class="building__room room room--main-102">
+                            <h2 class="room__title">Кабинет 102</h2>
+                        </div>
+                    </a>
+                </div>
+                <div class="building__right">
+                    <a href="" class="building__link" id="main">
+                        <div class="building__room room room--main">
+                            <h2 class="room__title">Кабинет руководителя</h2>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="building building--production">
+            <h2 class="building__title">Производственный комплекс</h2>
+            <div class="building__inner building__inner--production">
+                <div class="building__top">
+                    <a href="" class="building__link" id="production-1">
+                        <div class="building__room room room--production-1">
+                            <h2 class="room__title">Цех предварительной обработки сырьевого материала</h2>
+                        </div>
+                    </a>
+                </div>
+                <div class="building__bottom">
+                    <a href="" class="building__link" id="production-2">
+                        <div class="building__room room room--production-2">
+                            <h2 class="room__title">Производственный цех</h2>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fadeInRight wow" data-wow-duration="1s">
+        <div class="inventory">
+            <h3 class="inventory__title">Информация об оборудовании</h3>
+            <p class="inventory__welcome">Чтобы увидеть информацию, нажмите на <strong>комнату</strong></p>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+
+    <script>
+
+        var rooms = [
+            { id: 'main', name: 'Кабинет руководителя' },
+            { id: 'main-101', name: 'Кабинет 101' },
+            { id: 'main-102', name: 'Кабинет 102' },
+            { id: 'production-1', name: 'Цех обработки' },
+            { id: 'production-2', name: 'Производственный цех' }
+        ];
+
+        var links = document.querySelectorAll('.nav__link');
+
+        var inventory = [
+            { id: 1, name: 'Стол', count: 2, placeId: 'main' },
+            { id: 2, name: 'Шкаф', count: 1, placeId: 'main-101' },
+            { id: 3, name: 'Стул', count: 3, placeId: 'main' },
+            { id: 4, name: 'Пол', count: 4, placeId: 'production-2' },
+            { id: 5, name: 'Стакан', count: 5, placeId: 'production-2' },
+            { id: 6, name: 'Окно', count: 6, placeId: 'production-2' }
+        ];
+
+        var contentBox = document.querySelector('.inventory');
+
+        var buttons = [
+            button1 = document.querySelector('#main'),
+            button2 = document.querySelector('#main-101'),
+            button3 = document.querySelector('#main-102'),
+            button4 = document.querySelector('#production-1'),
+            button5 = document.querySelector('#production-2')
+        ]
+
+        function createElement(element, classes, text, type, placeholder) {
+            var elem = document.createElement(element);
+            elem.className = classes;
+            elem.innerHTML = text;
+            elem.type = type;
+            elem.placeholder = placeholder;
+            contentBox.append(elem);
+        }
+
+        function addInventory(room) {
+            var valueEquipment = document.querySelector('.inventory__input--equipment').value;
+            var valueCount = document.querySelector('.inventory__input--count').value;
+            if (valueEquipment != '' && valueCount != '') {
+                inventory.push({ id: inventory.length + 1, name: valueEquipment, count: parseInt(valueCount, 10), placeId: room.id })
+
+                createElement('p', 'inventory__item', '«' + valueEquipment + '»' + ' в количестве: ' + valueCount);
+
+                countInventory += parseInt(valueCount, 10);
+
+                valueEquipment = document.querySelector('.inventory__input--equipment').value = "";
+                valueCount = document.querySelector('.inventory__input--count').value = "";
+
+                $('.inventory__count').remove();
+                createElement('p', 'inventory__count', 'Общее количество оборудования: ' + countInventory);
+                console.log(inventory)
+            }
+        }
+
+        function deleteInventory(inventoryItem, room) {
+            inventoryItem.addEventListener('click', function () {
+                var e = inventoryItem;
+                var inventoryItemText = e.textContent || e.innerText;
+                inventoryItemText = inventoryItemText.match(/«(.+)»/)[1]
+
+                for (var i = 0; i < inventory.length; i++) {
+                    if (inventoryItemText == inventory[i].name && room.id == inventory[i].placeId) {
+                        countInventory -= inventory[i].count;
+                        inventory.splice(i, 1)
+                    }
+                }
+                $('.inventory__count').remove();
+                createElement('p', 'inventory__count', 'Общее количество оборудования: ' + countInventory);
+                var item = this;
+                item.remove();
+                console.log(inventory)
+            })
+        }
+
+        for (var i = 0; i < buttons.length; i++) {
+            getInventory(buttons[i], rooms[i])
+        }
+
+        for (var i = 0; i < buttons.length; i++) {
+            getInventory(links[i], rooms[i])
+        }
+
+        for (var i = 0; i < links.length; i++) {
+            addHoverLink(links[i], buttons[i])
+        }
+
+        function addHoverLink(link, button) {
+            link.addEventListener('mouseover', function (evt) {
+                evt.preventDefault();
+                button.classList.add('building__link--active')
+            })
+
+            link.addEventListener('mouseout', function (evt) {
+                evt.preventDefault();
+                button.classList.remove('building__link--active')
+            })
+        }
+
+        function getInventory(linkButton, room) {
+            linkButton.addEventListener('click', function (evt) {
+                evt.preventDefault();
+
+                while (contentBox.firstChild) {
+                    contentBox.removeChild(contentBox.firstChild);
+                }
+
+                createElement('h2', 'inventory__title', 'Информация об оборудовании')
+
+                createElement('h3', 'inventory__subtitle', room.name);
+
+                createElement('p', 'inventory__caption', 'Добавить оборудование');
+                createElement('input', 'inventory__input inventory__input--equipment', '', 'text', 'Название оборудования')
+                createElement('input', 'inventory__input inventory__input--count', '', 'number', 'Количество')
+                createElement('button', 'inventory__button inventory__button--add', 'Добавить');
+
+                createElement('p', 'inventory__equipment', 'Оборудование')
+
+                countInventory = 0;
+
+                for (var i = 0; i < inventory.length; i++) {
+                    if (inventory[i].placeId === room.id) {
+                        createElement('p', 'inventory__item', '«' + inventory[i].name + '»' + ' в количестве: ' + inventory[i].count);
+                        countInventory += parseInt(inventory[i].count, 10);
+                    }
+                }
+
+                createElement('p', 'inventory__count', 'Общее количество оборудования: ' + countInventory);
+
+                var addButtoon = document.querySelector('.inventory__button--add');
+
+                addButtoon.addEventListener('click', function (evt) {
+                    evt.preventDefault();
+                    addInventory(room);
+                })
+
+                var inventoryItems = document.querySelectorAll('.inventory__item');
+
+                for (var i = 0; i < inventoryItems.length; i++) {
+                    deleteInventory(inventoryItems[i], room);
+                }
+            })
+        }
+
+    </script>
+
+</body>
+
+</html>
